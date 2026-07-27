@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sole Stock Admin</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#23201B">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <h1>Sole Stock</h1>
+    <p>Admin panel — owner access only.</p>
+    <p class="login-error" id="login-error">Wrong password. Try again.</p>
+    <input type="password" id="password-input" placeholder="Password">
+    <button id="login-btn">Log in</button>
+  </div>
+</div>
+
+<div id="app-screen">
+  <div class="topbar">
+    <span class="brand">Sole Stock Admin</span>
+    <button id="logout-btn">Log out</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-panel="dashboard">Dashboard</button>
+    <button class="tab-btn" data-panel="products">Products</button>
+  </div>
+
+  <main>
+    <section class="panel active" id="panel-dashboard">
+      <div class="stat-grid" id="stat-grid">
+        <div class="stat-card"><div class="n">–</div><div class="label">Total visits</div></div>
+        <div class="stat-card"><div class="n">–</div><div class="label">WhatsApp clicks</div></div>
+      </div>
+      <p class="section-title">Clicks per shoe</p>
+      <table id="stats-table">
+        <thead><tr><th>Shoe</th><th>Clicks</th></tr></thead>
+        <tbody><tr><td colspan="2" class="loading">Loading…</td></tr></tbody>
+      </table>
+    </section>
+
+    <section class="panel" id="panel-products">
+      <div class="product-form">
+        <h3 id="form-title">Add a shoe</h3>
+        <input type="hidden" id="edit-id">
+        <input type="hidden" id="existing-image">
+        <div class="form-row">
+          <div><label>Name</label><input type="text" id="f-name" placeholder="Classic Court Sneaker"></div>
+          <div><label>Category</label><input type="text" id="f-category" placeholder="Sneakers"></div>
+        </div>
+        <div class="form-row">
+          <div><label>Price (KES)</label><input type="number" id="f-price" placeholder="3200"></div>
+          <div><label>Sizes</label><input type="text" id="f-sizes" placeholder="39-45"></div>
+          <div><label>SKU (optional)</label><input type="text" id="f-sku" placeholder="SNK-001"></div>
+        </div>
+        <div class="form-row">
+          <div><label>Photo</label><input type="file" id="f-image" accept="image/*"></div>
+        </div>
+        <button class="btn btn-save" id="save-btn" style="display:inline-block;">Save shoe</button>
+        <button class="btn btn-cancel" id="cancel-edit-btn" style="display:none;">Cancel edit</button>
+      </div>
+
+      <p class="section-title">Current stock</p>
+      <div id="product-list"><p class="loading">Loading…</p></div>
+    </section>
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+name = "sole-stock-api"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+
+# Allow requests from your GitHub Pages site and your admin panel.
+# Replace these with your real URLs once you know them, then redeploy.
+[vars]
+ALLOWED_ORIGINS = "https://your-username.github.io,https://your-admin-site.pages.dev"
+R2_PUBLIC_BASE = "https://pub-xxxxxxxx.r2.dev"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sole-stock-db"
+database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "sole-stock-images"
