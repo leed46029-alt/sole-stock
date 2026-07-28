@@ -65,6 +65,16 @@ const generalMessage = "Hi Sole Stock! I'd like to ask about your shoes.";
 /* ---------- Tracking ---------- */
 
 function trackVisit() {
+  const lastVisit = localStorage.getItem("sole_stock_last_visit");
+  const now = Date.now();
+  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000; // 24 hours in ms
+
+  if (lastVisit && now - parseInt(lastVisit, 10) < TWENTY_FOUR_HOURS) {
+    // Same browser visited within 24 hours — don't count duplicate visit
+    return;
+  }
+
+  localStorage.setItem("sole_stock_last_visit", now.toString());
   fetch(`${API_BASE}/api/track/visit`, { method: "POST" }).catch(() => {});
 }
 
