@@ -6,7 +6,7 @@
   (see backend/README-DEPLOY.md).
 */
 
-const API_BASE = "https://sole-stock-api.sole-stock.workers.dev";
+const API_BASE = "https://sole-stock-api.your-name.workers.dev"; // <-- replace after deploying the backend
 const TOKEN_KEY = "sole_stock_admin_token";
 
 // Cloudinary (free image hosting, no card needed). Fill these in after
@@ -192,70 +192,8 @@ const fPrice = document.getElementById("f-price");
 const fSizes = document.getElementById("f-sizes");
 const fSku = document.getElementById("f-sku");
 const fImage = document.getElementById("f-image");
-const previewContainer = document.getElementById("image-preview-container");
 const saveBtn = document.getElementById("save-btn");
 const cancelEditBtn = document.getElementById("cancel-edit-btn");
-
-let previewImages = []; // Array of { type: 'existing' | 'file', url: string, file?: File }
-
-function renderImagePreviews() {
-  if (!previewContainer) return;
-  previewContainer.innerHTML = "";
-  if (previewImages.length === 0) {
-    previewContainer.style.display = "none";
-    return;
-  }
-  previewContainer.style.display = "flex";
-
-  previewImages.forEach((item, index) => {
-    const thumb = document.createElement("div");
-    thumb.className = "preview-thumb" + (index === 0 ? " is-cover" : "");
-    thumb.innerHTML = `
-      <img src="${item.url}" alt="preview">
-      ${index === 0 ? '<span class="cover-badge">Main</span>' : ''}
-      <div class="thumb-actions">
-        ${index > 0 ? '<button class="thumb-btn make-cover" type="button" title="Set as Cover">★ Cover</button>' : ''}
-        <button class="thumb-btn delete-thumb" type="button" title="Remove photo">✕</button>
-      </div>
-    `;
-
-    const makeCoverBtn = thumb.querySelector(".make-cover");
-    if (makeCoverBtn) {
-      makeCoverBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        const selected = previewImages.splice(index, 1)[0];
-        previewImages.unshift(selected);
-        renderImagePreviews();
-      });
-    }
-
-    const deleteBtn = thumb.querySelector(".delete-thumb");
-    if (deleteBtn) {
-      deleteBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        previewImages.splice(index, 1);
-        renderImagePreviews();
-      });
-    }
-
-    previewContainer.appendChild(thumb);
-  });
-}
-
-if (fImage) {
-  fImage.addEventListener("change", (e) => {
-    const files = Array.from(e.target.files);
-    files.forEach((file) => {
-      previewImages.push({
-        type: "file",
-        file: file,
-        url: URL.createObjectURL(file),
-      });
-    });
-    fImage.value = ""; // Reset input so same file can be re-selected if needed
-    renderImagePreviews();
-  });
-}
 
 function handleAuthError() {
   clearToken();
@@ -310,14 +248,6 @@ function startEdit(product) {
   fSizes.value = product.sizes;
   fSku.value = product.sku || "";
   fImage.value = "";
-
-  previewImages = [];
-  const imgs = product.images || (product.image ? [product.image] : []);
-  imgs.forEach((url) => {
-    if (url) previewImages.push({ type: "existing", url });
-  });
-  renderImagePreviews();
-
   cancelEditBtn.style.display = "inline-block";
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -325,25 +255,12 @@ function startEdit(product) {
 async function uploadToCloudinary(file) {
   const formData = new FormData();
   formData.append("file", file);
-  // Strip trailing dot if accidentally included in config
-  const preset = CLOUDINARY_UPLOAD_PRESET.replace(/\.+$/, "");
-  formData.append("upload_preset", preset);
-  let res = await fetch(
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+  const res = await fetch(
     `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
     { method: "POST", body: formData }
   );
-  if (!res.ok) {
-    // Retry with raw config string if preset literally had a dot in Cloudinary
-    formData.set("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-    res = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-      { method: "POST", body: formData }
-    );
-  }
-  if (!res.ok) {
-    const errJson = await res.json().catch(() => ({}));
-    throw new Error(errJson.error?.message || "Cloudinary upload failed");
-  }
+  if (!res.ok) throw new Error("Cloudinary upload failed");
   const data = await res.json();
   return data.secure_url;
 }
@@ -358,8 +275,6 @@ function resetForm() {
   fSizes.value = "";
   fSku.value = "";
   fImage.value = "";
-  previewImages = [];
-  renderImagePreviews();
   cancelEditBtn.style.display = "none";
 }
 
@@ -371,25 +286,14 @@ saveBtn.addEventListener("click", async () => {
     return;
   }
 
-  if (previewImages.length === 0) {
-    alert("Please select at least one photo for the shoe.");
-    return;
-  }
-
   saveBtn.disabled = true;
   saveBtn.textContent = "Saving…";
 
   try {
-    const finalUrls = [];
-    for (let i = 0; i < previewImages.length; i++) {
-      const item = previewImages[i];
-      if (item.type === "existing") {
-        finalUrls.push(item.url);
-      } else if (item.type === "file") {
-        saveBtn.textContent = `Uploading photo ${i + 1} of ${previewImages.length}…`;
-        const uploadedUrl = await uploadToCloudinary(item.file);
-        finalUrls.push(uploadedUrl);
-      }
+    let imageUrl = existingImageInput.value || "";
+    if (fImage.files[0]) {
+      saveBtn.textContent = "Uploading photo…";
+      imageUrl = await uploadToCloudinary(fImage.files[0]);
     }
 
     const payload = {
@@ -398,8 +302,7 @@ saveBtn.addEventListener("click", async () => {
       price: Number(fPrice.value) || 0,
       sizes: fSizes.value,
       sku: fSku.value,
-      images: finalUrls,
-      image: finalUrls[0] || "",
+      image: imageUrl,
     };
 
     const id = editIdInput.value;
@@ -419,7 +322,7 @@ saveBtn.addEventListener("click", async () => {
     loadProducts();
     loadDashboard();
   } catch (err) {
-    alert("Couldn't save: " + (err.message || "Please check your connection and try again."));
+    alert("Couldn't save. Please check your connection and try again.");
   } finally {
     saveBtn.disabled = false;
     saveBtn.textContent = "Save shoe";

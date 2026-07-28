@@ -78,8 +78,14 @@ function trackClick(productId) {
 
 /* ---------- Modal Logic ---------- */
 
+const galleryStrip = document.getElementById("modal-gallery-strip");
+
 function openModal(product) {
-  modalImg.src = optimizeImageUrl(product.image, 800);
+  const images = (product.images && product.images.length > 0)
+    ? product.images
+    : (product.image ? [product.image] : []);
+
+  modalImg.src = optimizeImageUrl(images[0] || "", 800);
   modalImg.alt = product.name;
   modalCategory.textContent = product.category;
   modalName.textContent = product.name;
@@ -91,6 +97,27 @@ function openModal(product) {
 
   // Set click tracker on order button
   modalOrderBtn.onclick = () => trackClick(product.id);
+
+  // Render thumbnail gallery strip if more than 1 image
+  if (galleryStrip) {
+    galleryStrip.innerHTML = "";
+    if (images.length > 1) {
+      galleryStrip.style.display = "flex";
+      images.forEach((url, i) => {
+        const thumb = document.createElement("div");
+        thumb.className = "gallery-thumb" + (i === 0 ? " active" : "");
+        thumb.innerHTML = `<img src="${optimizeImageUrl(url, 200)}" alt="thumb ${i + 1}">`;
+        thumb.addEventListener("click", () => {
+          modalImg.src = optimizeImageUrl(url, 800);
+          galleryStrip.querySelectorAll(".gallery-thumb").forEach((t) => t.classList.remove("active"));
+          thumb.classList.add("active");
+        });
+        galleryStrip.appendChild(thumb);
+      });
+    } else {
+      galleryStrip.style.display = "none";
+    }
+  }
 
   modalOverlay.classList.add("open");
   modalSheet.classList.add("open");
@@ -137,7 +164,13 @@ function createCard(product) {
   const card = document.createElement("article");
   card.className = "grid-card";
 
-  const imgSrc = optimizeImageUrl(product.image, 500);
+  const images = (product.images && product.images.length > 0)
+    ? product.images
+    : (product.image ? [product.image] : []);
+  const coverUrl = images[0] || "";
+  const imgSrc = optimizeImageUrl(coverUrl, 500);
+
+  const countBadgeHtml = images.length > 1 ? `<div class="count-badge">📷 ${images.length}</div>` : "";
 
   card.innerHTML = `
     <img
@@ -148,6 +181,7 @@ function createCard(product) {
       loading="lazy"
       decoding="async"
     >
+    ${countBadgeHtml}
     <div class="price-badge">${product.price.toLocaleString()}</div>
   `;
 

@@ -28,58 +28,6 @@
     wrangler secret put ADMIN_RECOVERY_KEY
 */
 
-// ---------- Two-layer product cache ----------
-// Layer 1: module-level in-memory (survives across requests within the same
-//          Worker isolate, ~30 s TTL, free).
-// Layer 2: Cloudflare Cache API stored at the nearest edge PoP (~60 s TTL).
-// Both layers are busted immediately whenever an admin writes a product.
-
-const CACHE_TTL_MEMORY = 30;  // seconds
-const CACHE_TTL_EDGE   = 60;  // seconds (Cache-Control max-age sent to CF edge)
-const PRODUCTS_CACHE_KEY = "https://sole-stock-cache/api/products"; // fake key — never actually fetched
-
-let memCache = null;       // { data: [...], expiresAt: <ms> }
-
-function memCacheGet() {
-  if (memCache && Date.now() < memCache.expiresAt) return memCache.data;
-  return null;
-}
-
-function memCacheSet(data) {
-  memCache = { data, expiresAt: Date.now() + CACHE_TTL_MEMORY * 1000 };
-}
-
-function memCacheBust() {
-  memCache = null;
-}
-
-async function edgeCacheGet(cacheKey) {
-  try {
-    const cached = await caches.default.match(cacheKey);
-    if (cached) return cached;
-  } catch (_) { /* cache unavailable (local dev) — ignore */ }
-  return null;
-}
-
-async function edgeCacheSet(cacheKey, jsonData, corsHeaders) {
-  try {
-    const resp = new Response(jsonData, {
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": `public, max-age=${CACHE_TTL_EDGE}`,
-        ...corsHeaders,
-      },
-    });
-    await caches.default.put(cacheKey, resp);
-  } catch (_) { /* ignore in local dev */ }
-}
-
-async function edgeCacheBust() {
-  try {
-    await caches.default.delete(PRODUCTS_CACHE_KEY);
-  } catch (_) { /* ignore */ }
-}
-
 // ---------- Password hashing (PBKDF2-SHA256, salted) ----------
 // Never store or compare plain-text passwords — only these hashes.
 
@@ -179,21 +127,6 @@ async function requireAuth(request, env) {
 }
 
 function productFromRow(row) {
-  let images = [];
-  if (row.image) {
-    if (row.image.trim().startsWith("[")) {
-      try {
-        images = JSON.parse(row.image);
-      } catch (_) {
-        images = [row.image];
-      }
-    } else {
-      images = [row.image];
-    }
-  }
-  // Filter out any empty strings
-  images = images.filter(Boolean);
-
   return {
     id: row.id,
     name: row.name,
@@ -201,8 +134,7 @@ function productFromRow(row) {
     price: row.price,
     sizes: row.sizes,
     sku: row.sku,
-    image: images[0] || "",
-    images: images,
+    image: row.image,
   };
 }
 
@@ -218,34 +150,12 @@ export default {
     }
 
     try {
-      // ---------- PUBLIC: products (two-layer cache) ----------
+      // ---------- PUBLIC: products ----------
       if (path === "/api/products" && method === "GET") {
-        // Layer 1: in-memory (same isolate, near-zero latency)
-        const memHit = memCacheGet();
-        if (memHit) {
-          return json(memHit, 200, { ...cors, "X-Cache": "MEM" });
-        }
-
-        // Layer 2: Cloudflare edge cache (nearest PoP, ~0 ms for cached)
-        const cacheKey = new Request(PRODUCTS_CACHE_KEY);
-        const edgeHit = await edgeCacheGet(cacheKey);
-        if (edgeHit) {
-          // Warm the in-memory layer too so the next request skips edge lookup
-          const data = await edgeHit.clone().json();
-          memCacheSet(data);
-          return new Response(edgeHit.body, {
-            headers: { ...Object.fromEntries(edgeHit.headers), "X-Cache": "EDGE", ...cors },
-          });
-        }
-
-        // Cache miss — query D1, then populate both layers
         const { results } = await env.DB.prepare(
           "SELECT * FROM products ORDER BY created_at DESC"
         ).all();
-        const data = results.map(productFromRow);
-        memCacheSet(data);
-        await edgeCacheSet(cacheKey, JSON.stringify(data), cors);
-        return json(data, 200, { ...cors, "X-Cache": "MISS" });
+        return json(results.map(productFromRow), 200, cors);
       }
 
       // ---------- PUBLIC: tracking ----------
@@ -322,13 +232,6 @@ export default {
       // ---------- ADMIN: create product ----------
       if (path === "/api/admin/products" && method === "POST") {
         const body = await request.json();
-        let imageStr = "";
-        if (Array.isArray(body.images) && body.images.length > 0) {
-          imageStr = JSON.stringify(body.images);
-        } else if (body.image) {
-          imageStr = body.image;
-        }
-
         await env.DB.prepare(
           `INSERT INTO products (name, category, price, sizes, sku, image)
            VALUES (?, ?, ?, ?, ?, ?)`
@@ -339,11 +242,9 @@ export default {
             Number(body.price) || 0,
             body.sizes,
             body.sku || "",
-            imageStr
+            body.image || ""
           )
           .run();
-        memCacheBust();
-        await edgeCacheBust();
         return json({ ok: true }, 200, cors);
       }
 
@@ -352,13 +253,6 @@ export default {
       if (editMatch && method === "PUT") {
         const id = editMatch[1];
         const body = await request.json();
-        let imageStr = "";
-        if (Array.isArray(body.images) && body.images.length > 0) {
-          imageStr = JSON.stringify(body.images);
-        } else if (body.image) {
-          imageStr = body.image;
-        }
-
         await env.DB.prepare(
           `UPDATE products
            SET name = ?, category = ?, price = ?, sizes = ?, sku = ?, image = ?
@@ -370,12 +264,10 @@ export default {
             Number(body.price) || 0,
             body.sizes,
             body.sku || "",
-            imageStr,
+            body.image || "",
             id
           )
           .run();
-        memCacheBust();
-        await edgeCacheBust();
         return json({ ok: true }, 200, cors);
       }
 
@@ -383,8 +275,6 @@ export default {
       if (editMatch && method === "DELETE") {
         const id = editMatch[1];
         await env.DB.prepare("DELETE FROM products WHERE id = ?").bind(id).run();
-        memCacheBust();
-        await edgeCacheBust();
         return json({ ok: true }, 200, cors);
       }
 
