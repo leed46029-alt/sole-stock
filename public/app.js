@@ -1,9 +1,8 @@
 /*
   APP.JS (public site)
   --------------------
-  Loads shoes from the live API instead of a fixed file, so anything you
-  add in the admin panel shows up here automatically. Also reports page
-  visits and WhatsApp button clicks so they show up in your admin stats.
+  Loads shoes from the live API, renders a clean image-first grid, and opens
+  a bottom-sheet modal with full shoe details when a customer taps any image.
 */
 
 const API_BASE = "https://sole-stock-api.sole-stock.workers.dev";
@@ -15,24 +14,29 @@ const searchInput = document.getElementById("search-input");
 const resultCount = document.getElementById("result-count");
 const emptyState = document.getElementById("empty-state");
 
+// Modal elements
+const modalOverlay = document.getElementById("modal-overlay");
+const modalSheet = document.getElementById("modal-sheet");
+const modalClose = document.getElementById("modal-close");
+const modalImg = document.getElementById("modal-img");
+const modalCategory = document.getElementById("modal-category");
+const modalName = document.getElementById("modal-name");
+const modalSizes = document.getElementById("modal-sizes");
+const modalPrice = document.getElementById("modal-price");
+const modalSku = document.getElementById("modal-sku");
+const modalOrderBtn = document.getElementById("modal-order-btn");
+
 let PRODUCTS = [];
 let activeCategory = "All";
 let searchTerm = "";
 
 /* ---------- Image URL optimizer ---------- */
 
-/**
- * If the URL is a Cloudinary URL, append transform params so Cloudinary
- * serves a smaller, faster WebP/AVIF image (600px wide, auto quality,
- * auto format). Non-Cloudinary URLs are returned unchanged.
- */
-function optimizeImageUrl(url) {
+function optimizeImageUrl(url, width = 600) {
   if (!url) return url;
   if (!url.includes("res.cloudinary.com")) return url;
-  // Avoid double-appending if params already present
-  if (url.includes("w_600")) return url;
-  // Insert transform after /upload/
-  return url.replace("/upload/", "/upload/w_600,q_auto,f_auto/");
+  if (url.includes("w_")) return url;
+  return url.replace("/upload/", `/upload/w_${width},q_auto,f_auto/`);
 }
 
 /* ---------- WhatsApp link builders ---------- */
@@ -44,7 +48,7 @@ function waLink(message) {
 function productWaLink(product) {
   const message =
     `Hi Sole Stock! I'd like to order:\n` +
-    `${product.name} (${product.sku})\n` +
+    `${product.name} (${product.sku || "N/A"})\n` +
     `Category: ${product.category}\n` +
     `Price: KES ${product.price.toLocaleString()}\n` +
     `Available sizes: ${product.sizes}\n\n` +
@@ -72,6 +76,39 @@ function trackClick(productId) {
   }).catch(() => {});
 }
 
+/* ---------- Modal Logic ---------- */
+
+function openModal(product) {
+  modalImg.src = optimizeImageUrl(product.image, 800);
+  modalImg.alt = product.name;
+  modalCategory.textContent = product.category;
+  modalName.textContent = product.name;
+  modalSizes.textContent = `Available Sizes: ${product.sizes}`;
+  modalPrice.textContent = product.price.toLocaleString();
+  modalSku.textContent = product.sku ? `SKU: ${product.sku}` : "";
+
+  modalOrderBtn.href = productWaLink(product);
+
+  // Set click tracker on order button
+  modalOrderBtn.onclick = () => trackClick(product.id);
+
+  modalOverlay.classList.add("open");
+  modalSheet.classList.add("open");
+  document.body.classList.add("modal-open");
+}
+
+function closeModal() {
+  modalOverlay.classList.remove("open");
+  modalSheet.classList.remove("open");
+  document.body.classList.remove("modal-open");
+}
+
+modalOverlay.addEventListener("click", closeModal);
+modalClose.addEventListener("click", closeModal);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeModal();
+});
+
 /* ---------- Category tabs ---------- */
 
 function getCategories() {
@@ -94,46 +131,32 @@ function renderTabs() {
   });
 }
 
-/* ---------- Product card ---------- */
+/* ---------- Product card (Image + Price Badge) ---------- */
 
 function createCard(product) {
   const card = document.createElement("article");
-  card.className = "tag-card";
+  card.className = "grid-card";
 
-  const imgSrc = optimizeImageUrl(product.image);
+  const imgSrc = optimizeImageUrl(product.image, 500);
 
   card.innerHTML = `
-    <div class="tag-image-wrap">
-      <img
-        src="${imgSrc}"
-        alt="${product.name}"
-        width="600"
-        height="600"
-        loading="lazy"
-        decoding="async"
-      >
-    </div>
-    <div class="tag-body">
-      <p class="tag-cat-label">${product.category}</p>
-      <h3 class="tag-name">${product.name}</h3>
-      <p class="tag-meta">Sizes: ${product.sizes}</p>
-      <div class="tag-price-row">
-        <span class="tag-price">${product.price.toLocaleString()}</span>
-        <span class="tag-sku">${product.sku || ""}</span>
-      </div>
-      <a class="order-btn" href="${productWaLink(product)}" target="_blank" rel="noopener">
-        Order Now
-      </a>
-    </div>
+    <img
+      src="${imgSrc}"
+      alt="${product.name}"
+      width="500"
+      height="500"
+      loading="lazy"
+      decoding="async"
+    >
+    <div class="price-badge">${product.price.toLocaleString()}</div>
   `;
 
-  // Remove shimmer once image loads
+  // Remove shimmer class once loaded
   const img = card.querySelector("img");
   img.addEventListener("load", () => img.classList.add("loaded"));
 
-  card.querySelector(".order-btn").addEventListener("click", () => {
-    trackClick(product.id);
-  });
+  // Tapping card opens product details modal
+  card.addEventListener("click", () => openModal(product));
 
   return card;
 }

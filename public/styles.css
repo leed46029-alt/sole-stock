@@ -1,5 +1,5 @@
 /* ============================================================
-   TOKENS
+   TOKENS & BASE STYLES
    ============================================================ */
 :root {
   --paper: #F7F3EC;
@@ -27,6 +27,10 @@ html, body {
   scroll-behavior: smooth;
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
 img { max-width: 100%; display: block; }
 button, a { font-family: inherit; }
 
@@ -39,7 +43,7 @@ button, a { font-family: inherit; }
   z-index: 20;
   background: var(--ink);
   color: var(--paper);
-  padding: 12px 20px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -64,7 +68,7 @@ button, a { font-family: inherit; }
 
 .brand-sub {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   color: rgba(255,255,255,0.45);
   letter-spacing: 1px;
 }
@@ -72,13 +76,13 @@ button, a { font-family: inherit; }
 .header-cta {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   background: var(--whatsapp);
   color: #ffffff;
-  padding: 8px 14px;
+  padding: 8px 12px;
   border-radius: 999px;
   font-weight: 600;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   text-decoration: none;
   white-space: nowrap;
   transition: background 0.15s ease;
@@ -90,8 +94,8 @@ button, a { font-family: inherit; }
    ============================================================ */
 .controls {
   max-width: 960px;
-  margin: 20px auto 0;
-  padding: 0 16px;
+  margin: 16px auto 0;
+  padding: 0 12px;
 }
 
 .search-box {
@@ -99,33 +103,32 @@ button, a { font-family: inherit; }
   align-items: center;
   border: 1.5px solid var(--ink-light);
   border-radius: var(--radius);
-  padding: 10px 14px;
+  padding: 8px 12px;
   background: #fff;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 .search-box input {
   border: none;
   outline: none;
   width: 100%;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-family: var(--font-body);
   background: transparent;
   color: var(--ink);
 }
-.search-box svg { flex-shrink: 0; margin-right: 10px; opacity: 0.45; }
+.search-box svg { flex-shrink: 0; margin-right: 8px; opacity: 0.45; }
 
 .category-tabs {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
-  margin-bottom: 4px;
 }
 
 .tab {
   font-family: var(--font-body);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 500;
-  padding: 6px 14px;
+  padding: 5px 12px;
   border: 1.5px solid var(--ink-light);
   border-radius: 999px;
   background: transparent;
@@ -138,63 +141,74 @@ button, a { font-family: inherit; }
 
 .result-count {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--ink-soft);
   max-width: 960px;
-  margin: 12px auto 0;
-  padding: 0 16px;
+  margin: 10px auto 0;
+  padding: 0 12px;
 }
 
 /* ============================================================
-   PRODUCT GRID
+   PRODUCT GRID (IMAGE-ONLY + PRICE BADGE)
    ============================================================ */
 .grid {
   max-width: 960px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 12px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+@media (min-width: 600px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+}
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
 }
 
 /* ---- Card ---- */
-.tag-card {
+.grid-card {
+  position: relative;
   background: var(--card-bg);
-  border: 1px solid var(--ink-light);
   border-radius: var(--radius);
   overflow: hidden;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.tag-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-}
-
-/* ---- Image area with shimmer skeleton ---- */
-.tag-image-wrap {
-  width: 100%;
   aspect-ratio: 1 / 1;
-  overflow: hidden;
-  background: #f0ede8;
-  position: relative;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.grid-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+.grid-card:active {
+  transform: scale(0.98);
 }
 
 /* Shimmer animation while image loads */
-.tag-image-wrap::before {
+.grid-card::before {
   content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(
     90deg,
-    transparent 0%,
-    rgba(255,255,255,0.55) 50%,
-    transparent 100%
+    #f0ede8 0%,
+    #fcfbfa 50%,
+    #f0ede8 100%
   );
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
   z-index: 1;
 }
-.tag-image-wrap img {
+
+.grid-card img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -203,62 +217,172 @@ button, a { font-family: inherit; }
   z-index: 2;
   transition: transform 0.3s ease;
 }
-.tag-image-wrap img.loaded::before { display: none; }
-.tag-card:hover .tag-image-wrap img { transform: scale(1.04); }
+.grid-card img.loaded::before { display: none; }
+.grid-card:hover img { transform: scale(1.05); }
 
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
 }
 
-/* ---- Card body ---- */
-.tag-body {
-  padding: 12px 14px 14px;
+/* ---- Price Badge overlay ---- */
+.price-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  z-index: 3;
+  background: rgba(35, 32, 27, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+  letter-spacing: 0.5px;
+}
+.price-badge::before {
+  content: "KES ";
+  font-size: 0.6rem;
+  font-weight: 400;
+  opacity: 0.85;
 }
 
-.tag-cat-label {
-  font-size: 0.7rem;
-  font-weight: 600;
+/* ============================================================
+   BOTTOM-SHEET / MODAL DETAILS
+   ============================================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  backdrop-filter: blur(2px);
+}
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  z-index: 101;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.25);
+}
+.modal-sheet.open {
+  transform: translateY(0);
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+  border: none;
+  font-size: 1.2rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.modal-close:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.modal-image-wrap {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 45vh;
+  background: #f0ede8;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+}
+.modal-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-body {
+  padding: 16px 20px 24px;
+  overflow-y: auto;
+}
+
+.modal-category {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 1px;
   color: var(--ink-soft);
-  margin: 0 0 4px;
+  margin-bottom: 4px;
 }
 
-.tag-name {
-  font-weight: 600;
-  font-size: 0.97rem;
+.modal-name {
+  font-size: 1.25rem;
+  font-weight: 700;
   margin: 0 0 6px;
   color: var(--ink);
-  line-height: 1.3;
+  line-height: 1.2;
 }
 
-.tag-meta {
+.modal-sizes {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: var(--ink-soft);
-  margin-bottom: 12px;
+  margin: 0 0 16px;
 }
 
-.tag-price-row {
+.modal-price-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--ink-light);
 }
 
-.tag-price {
+.modal-price {
   font-family: var(--font-mono);
-  font-size: 1rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--ink);
 }
-.tag-price::before { content: "KES "; font-size: 0.68rem; font-weight: 400; }
+.modal-price::before {
+  content: "KES ";
+  font-size: 0.8rem;
+  font-weight: 400;
+}
 
-.tag-sku {
+.modal-sku {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
-  color: var(--ink-light);
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  opacity: 0.7;
 }
 
 .order-btn {
@@ -266,19 +390,43 @@ button, a { font-family: inherit; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 8px;
   background: var(--whatsapp);
   color: #fff;
   border: none;
-  border-radius: 6px;
-  padding: 10px 12px;
-  font-weight: 600;
-  font-size: 0.85rem;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-weight: 700;
+  font-size: 0.95rem;
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.12s ease;
+  transition: background 0.15s ease;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
 }
 .order-btn:hover { background: var(--whatsapp-dark); }
+
+/* Desktop Modal Dialog Style */
+@media (min-width: 640px) {
+  .modal-sheet {
+    top: 50%;
+    bottom: auto;
+    left: 50%;
+    right: auto;
+    width: 90%;
+    max-width: 440px;
+    border-radius: 16px;
+    transform: translate(-50%, -40%) scale(0.95);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    max-height: 85vh;
+  }
+  .modal-sheet.open {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
 
 /* ============================================================
    EMPTY STATE & FOOTER
@@ -323,7 +471,6 @@ button, a { font-family: inherit; }
 
 @media (min-width: 700px) {
   .float-cta { display: none; }
-  .grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
