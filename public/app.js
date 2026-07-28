@@ -4,12 +4,9 @@
   Loads shoes from the live API instead of a fixed file, so anything you
   add in the admin panel shows up here automatically. Also reports page
   visits and WhatsApp button clicks so they show up in your admin stats.
-
-  The only thing you should need to change is API_BASE below, once you've
-  deployed the backend (see backend/README-DEPLOY.md).
 */
 
-const API_BASE = "https://sole-stock-api.sole-stock.workers.dev"; // <-- replace after deploying the backend
+const API_BASE = "https://sole-stock-api.sole-stock.workers.dev";
 const WHATSAPP_NUMBER = "254712215746"; // +254 712 215746, no + or spaces
 
 const grid = document.getElementById("product-grid");
@@ -21,6 +18,22 @@ const emptyState = document.getElementById("empty-state");
 let PRODUCTS = [];
 let activeCategory = "All";
 let searchTerm = "";
+
+/* ---------- Image URL optimizer ---------- */
+
+/**
+ * If the URL is a Cloudinary URL, append transform params so Cloudinary
+ * serves a smaller, faster WebP/AVIF image (600px wide, auto quality,
+ * auto format). Non-Cloudinary URLs are returned unchanged.
+ */
+function optimizeImageUrl(url) {
+  if (!url) return url;
+  if (!url.includes("res.cloudinary.com")) return url;
+  // Avoid double-appending if params already present
+  if (url.includes("w_600")) return url;
+  // Insert transform after /upload/
+  return url.replace("/upload/", "/upload/w_600,q_auto,f_auto/");
+}
 
 /* ---------- WhatsApp link builders ---------- */
 
@@ -86,16 +99,24 @@ function renderTabs() {
 function createCard(product) {
   const card = document.createElement("article");
   card.className = "tag-card";
+
+  const imgSrc = optimizeImageUrl(product.image);
+
   card.innerHTML = `
-    <div class="tag-string"></div>
-    <div class="tag-hole"></div>
-    <span class="tag-category">${product.category}</span>
     <div class="tag-image-wrap">
-      <img src="${product.image}" alt="${product.name}" loading="lazy">
+      <img
+        src="${imgSrc}"
+        alt="${product.name}"
+        width="600"
+        height="600"
+        loading="lazy"
+        decoding="async"
+      >
     </div>
     <div class="tag-body">
+      <p class="tag-cat-label">${product.category}</p>
       <h3 class="tag-name">${product.name}</h3>
-      <p class="tag-meta">SIZES ${product.sizes}</p>
+      <p class="tag-meta">Sizes: ${product.sizes}</p>
       <div class="tag-price-row">
         <span class="tag-price">${product.price.toLocaleString()}</span>
         <span class="tag-sku">${product.sku || ""}</span>
@@ -105,9 +126,15 @@ function createCard(product) {
       </a>
     </div>
   `;
+
+  // Remove shimmer once image loads
+  const img = card.querySelector("img");
+  img.addEventListener("load", () => img.classList.add("loaded"));
+
   card.querySelector(".order-btn").addEventListener("click", () => {
     trackClick(product.id);
   });
+
   return card;
 }
 

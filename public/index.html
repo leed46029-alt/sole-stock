@@ -8,39 +8,29 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <header class="site-header">
-  <a class="brand" href="#top">SOLE STOCK <span>NAIROBI</span></a>
+  <div class="header-left">
+    <a class="brand" href="#top">Sole Stock</a>
+    <span class="brand-sub">NAIROBI · NEW STOCK EVERY WEEK</span>
+  </div>
   <a class="header-cta" id="header-whatsapp" href="#" target="_blank" rel="noopener">
     💬 Chat on WhatsApp
   </a>
 </header>
 
-<section class="hero" id="top">
-  <div class="hero-inner">
-    <span class="hero-eyebrow">NEW STOCK EVERY WEEK</span>
-    <h1>Shoes for<br>every step.</h1>
-    <p>Sneakers, official wear, heels, sandals, boots and kids' shoes — all in one place. Tap any pair to order straight on WhatsApp.</p>
-    <div class="hero-actions">
-      <a class="btn-primary" href="#catalog">Browse the catalog</a>
-    </div>
+<div class="controls" id="top">
+  <div class="search-box">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="search-input" placeholder="Search shoes… name, category, size">
   </div>
-</section>
-
-<div class="controls" id="catalog">
-  <div class="controls-panel">
-    <div class="search-box">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#23201B" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="search-input" placeholder="Search shoes… e.g. sneaker, heel, size 42">
-    </div>
-    <div class="category-tabs" id="category-tabs">
-      <!-- category buttons injected by app.js -->
-    </div>
+  <div class="category-tabs" id="category-tabs">
+    <!-- category buttons injected by app.js -->
   </div>
 </div>
 
