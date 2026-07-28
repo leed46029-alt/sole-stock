@@ -122,7 +122,7 @@ function createCard(product) {
         <span class="tag-sku">${product.sku || ""}</span>
       </div>
       <a class="order-btn" href="${productWaLink(product)}" target="_blank" rel="noopener">
-        💬 Order on WhatsApp
+        Order Now
       </a>
     </div>
   `;
