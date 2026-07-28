@@ -6,13 +6,8 @@ compatibility_date = "2024-09-23"
 # Replace these with your real URLs once you know them, then redeploy.
 [vars]
 ALLOWED_ORIGINS = "https://your-username.github.io,https://your-admin-site.pages.dev"
-R2_PUBLIC_BASE = "https://pub-xxxxxxxx.r2.dev"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "sole-stock-db"
-database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
-
-[[r2_buckets]]
-binding = "IMAGES"
-bucket_name = "sole-stock-images"
+database_id = "d417dc89-8f67-43ea-b99c-8d79cb5bc2ad"

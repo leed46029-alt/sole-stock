@@ -9,7 +9,7 @@
   deployed the backend (see backend/README-DEPLOY.md).
 */
 
-const API_BASE = "https://sole-stock-api.your-name.workers.dev"; // <-- replace after deploying the backend
+const API_BASE = "https://sole-stock-api.sole-stock.workers.dev"; // <-- replace after deploying the backend
 const WHATSAPP_NUMBER = "254712215746"; // +254 712 215746, no + or spaces
 
 const grid = document.getElementById("product-grid");

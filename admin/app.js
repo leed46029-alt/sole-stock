@@ -6,7 +6,7 @@
   (see backend/README-DEPLOY.md).
 */
 
-const API_BASE = "https://sole-stock-api.your-name.workers.dev"; // <-- replace after deploying the backend
+const API_BASE = "https://sole-stock-api.sole-stock.workers.dev"; // <-- replace after deploying the backend
 const TOKEN_KEY = "sole_stock_admin_token";
 
 const loginScreen = document.getElementById("login-screen");

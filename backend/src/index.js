@@ -54,7 +54,7 @@ async function requireAuth(request, env) {
 
 async function uploadImageIfPresent(formData, env) {
   const file = formData.get("image");
-  if (!file || typeof file === "string") return null;
+  if (!file || typeof file === "string" || !env.IMAGES) return null;
   const key = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "")}`;
   await env.IMAGES.put(key, await file.arrayBuffer(), {
     httpMetadata: { contentType: file.type || "image/jpeg" },
