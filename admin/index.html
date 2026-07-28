@@ -9,43 +9,19 @@
 <meta name="theme-color" content="#23201B">
 <link rel="apple-touch-icon" href="icon-192.png">
 
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<div id="login-screen">
-  <div class="login-box" id="login-form-box">
-    <h1>Sole Stock</h1>
-    <p>Admin panel — owner access only.</p>
-    <p class="login-error" id="login-error">Wrong password. Try again.</p>
-    <input type="password" id="password-input" placeholder="Password">
-    <button id="login-btn">Log in</button>
-    <button class="link-btn" id="show-reset-btn">Forgot password?</button>
-  </div>
-
-  <div class="login-box" id="reset-form-box" style="display:none;">
-    <h1>Reset password</h1>
-    <p>Enter your recovery key and choose a new password.</p>
-    <p class="login-error" id="reset-error"></p>
-    <p class="login-success" id="reset-success"></p>
-    <input type="password" id="recovery-key-input" placeholder="Recovery key">
-    <input type="password" id="new-password-input" placeholder="New password (min 6 characters)">
-    <button id="reset-btn">Set new password</button>
-    <button class="link-btn" id="show-login-btn">Back to log in</button>
-  </div>
-</div>
-
 <div id="app-screen">
   <div class="topbar">
     <span class="brand">Sole Stock Admin</span>
-    <button id="logout-btn">Log out</button>
   </div>
 
   <div class="tabs">
     <button class="tab-btn active" data-panel="dashboard">Dashboard</button>
     <button class="tab-btn" data-panel="products">Products</button>
-    <button class="tab-btn" data-panel="settings">Settings</button>
   </div>
 
   <main>
@@ -88,29 +64,6 @@
 
       <p class="section-title">Current stock</p>
       <div id="product-list"><p class="loading">Loading…</p></div>
-    </section>
-
-    <section class="panel" id="panel-settings">
-      <div class="product-form">
-        <h3>Change password</h3>
-        <p class="login-error" id="change-pw-error"></p>
-        <p class="login-success" id="change-pw-success"></p>
-        <div class="form-row">
-          <div><label>Current password</label><input type="password" id="current-password-input"></div>
-        </div>
-        <div class="form-row">
-          <div><label>New password (min 6 characters)</label><input type="password" id="new-password-settings-input"></div>
-        </div>
-        <button class="btn btn-save" id="change-pw-btn" style="display:inline-block;">Update password</button>
-      </div>
-      <p class="section-title">Forgot your recovery key too?</p>
-      <p class="loading">
-        The recovery key is a separate secret only you hold — it was never
-        stored in this app. If you've lost it, it can be reset the same
-        way it was first created (via <code>wrangler secret put
-        ADMIN_RECOVERY_KEY</code>), so it's worth keeping a copy somewhere
-        safe like a password manager.
-      </p>
     </section>
   </main>
 </div>

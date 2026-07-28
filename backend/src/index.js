@@ -167,15 +167,7 @@ function json(data, status, headers) {
 }
 
 async function requireAuth(request, env) {
-  const authHeader = request.headers.get("Authorization") || "";
-  const token = authHeader.replace("Bearer ", "").trim();
-  if (!token) return false;
-  const row = await env.DB.prepare(
-    "SELECT token FROM sessions WHERE token = ? AND expires_at > datetime('now')"
-  )
-    .bind(token)
-    .first();
-  return !!row;
+  return true; // Password authentication removed
 }
 
 function productFromRow(row) {
@@ -260,55 +252,6 @@ export default {
           .bind(body.productId || null)
           .run();
         return json({ ok: true }, 200, cors);
-      }
-
-      // ---------- ADMIN: login ----------
-      if (path === "/api/admin/login" && method === "POST") {
-        const body = await request.json().catch(() => ({}));
-        const valid = await verifyAdminPassword(env, body.password || "");
-        if (!valid) {
-          return json({ error: "Wrong password" }, 401, cors);
-        }
-        const token = crypto.randomUUID();
-        await env.DB.prepare(
-          "INSERT INTO sessions (token, expires_at) VALUES (?, datetime('now', '+30 days'))"
-        )
-          .bind(token)
-          .run();
-        return json({ token }, 200, cors);
-      }
-
-      // ---------- ADMIN: reset password with recovery key (no login needed) ----------
-      if (path === "/api/admin/reset-password" && method === "POST") {
-        const body = await request.json().catch(() => ({}));
-        if (!env.ADMIN_RECOVERY_KEY || body.recoveryKey !== env.ADMIN_RECOVERY_KEY) {
-          return json({ error: "Wrong recovery key" }, 401, cors);
-        }
-        if (!body.newPassword || body.newPassword.length < 6) {
-          return json({ error: "New password must be at least 6 characters" }, 400, cors);
-        }
-        await setAdminPassword(env, body.newPassword);
-        return json({ ok: true }, 200, cors);
-      }
-
-      // ---------- ADMIN: change password while logged in ----------
-      if (path === "/api/admin/change-password" && method === "POST") {
-        const authed = await requireAuth(request, env);
-        if (!authed) return json({ error: "Unauthorized" }, 401, cors);
-        const body = await request.json().catch(() => ({}));
-        const valid = await verifyAdminPassword(env, body.currentPassword || "");
-        if (!valid) return json({ error: "Current password is wrong" }, 401, cors);
-        if (!body.newPassword || body.newPassword.length < 6) {
-          return json({ error: "New password must be at least 6 characters" }, 400, cors);
-        }
-        await setAdminPassword(env, body.newPassword);
-        return json({ ok: true }, 200, cors);
-      }
-
-      // Everything below this line requires a valid admin token.
-      if (path.startsWith("/api/admin/")) {
-        const authed = await requireAuth(request, env);
-        if (!authed) return json({ error: "Unauthorized" }, 401, cors);
       }
 
       // ---------- ADMIN: products list ----------

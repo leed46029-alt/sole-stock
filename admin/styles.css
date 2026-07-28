@@ -85,7 +85,7 @@ html, body {
 }
 
 /* ---------- App shell ---------- */
-#app-screen { display: none; min-height: 100vh; }
+#app-screen { min-height: 100vh; }
 
 .topbar {
   background: var(--ink);
