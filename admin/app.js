@@ -57,7 +57,6 @@ const fName = document.getElementById("f-name");
 const fCategory = document.getElementById("f-category");
 const fPrice = document.getElementById("f-price");
 const fSizes = document.getElementById("f-sizes");
-const fSku = document.getElementById("f-sku");
 const fImage = document.getElementById("f-image");
 const previewContainer = document.getElementById("image-preview-container");
 const saveBtn = document.getElementById("save-btn");
@@ -169,7 +168,6 @@ function startEdit(product) {
   fCategory.value = product.category;
   fPrice.value = product.price;
   fSizes.value = product.sizes;
-  fSku.value = product.sku || "";
   fImage.value = "";
 
   previewImages = [];
@@ -215,7 +213,6 @@ function resetForm() {
   fCategory.value = "";
   fPrice.value = "";
   fSizes.value = "";
-  fSku.value = "";
   fImage.value = "";
   previewImages = [];
   renderImagePreviews();
@@ -256,7 +253,7 @@ saveBtn.addEventListener("click", async () => {
       category: fCategory.value,
       price: Number(fPrice.value) || 0,
       sizes: fSizes.value,
-      sku: fSku.value,
+      sku: "",
       images: finalUrls,
       image: finalUrls[0] || "",
     };
