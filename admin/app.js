@@ -6,8 +6,13 @@
   (see backend/README-DEPLOY.md).
 */
 
-const API_BASE = "https://sole-stock-api.sole-stock.workers.dev"; // <-- replace after deploying the backend
+const API_BASE = "https://sole-stock-api.sole-stock.workers.dev";
 const TOKEN_KEY = "sole_stock_admin_token";
+
+// Cloudinary (free image hosting, no card needed). Fill these in after
+// creating your free Cloudinary account — see README for exact steps.
+const CLOUDINARY_CLOUD_NAME = "pbbkhshn";
+const CLOUDINARY_UPLOAD_PRESET = "sole-stock-unsigned.";
 
 const loginScreen = document.getElementById("login-screen");
 const appScreen = document.getElementById("app-screen");
@@ -15,6 +20,16 @@ const passwordInput = document.getElementById("password-input");
 const loginBtn = document.getElementById("login-btn");
 const loginError = document.getElementById("login-error");
 const logoutBtn = document.getElementById("logout-btn");
+
+const loginFormBox = document.getElementById("login-form-box");
+const resetFormBox = document.getElementById("reset-form-box");
+const showResetBtn = document.getElementById("show-reset-btn");
+const showLoginBtn = document.getElementById("show-login-btn");
+const recoveryKeyInput = document.getElementById("recovery-key-input");
+const newPasswordInput = document.getElementById("new-password-input");
+const resetBtn = document.getElementById("reset-btn");
+const resetError = document.getElementById("reset-error");
+const resetSuccess = document.getElementById("reset-success");
 
 /* ---------- Auth ---------- */
 
@@ -35,7 +50,7 @@ function authHeaders() {
 }
 
 async function login() {
-  loginError.style.display = "none";
+  loginError.textContent = "";
   const password = passwordInput.value;
   try {
     const res = await fetch(`${API_BASE}/api/admin/login`, {
@@ -48,13 +63,67 @@ async function login() {
     setToken(data.token);
     showApp();
   } catch (err) {
-    loginError.style.display = "block";
+    loginError.textContent = "Wrong password. Try again.";
   }
 }
 
 loginBtn.addEventListener("click", login);
 passwordInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") login();
+});
+
+/* ---------- Forgot password / reset ---------- */
+
+showResetBtn.addEventListener("click", () => {
+  loginFormBox.style.display = "none";
+  resetFormBox.style.display = "block";
+  resetError.textContent = "";
+  resetSuccess.textContent = "";
+});
+
+showLoginBtn.addEventListener("click", () => {
+  resetFormBox.style.display = "none";
+  loginFormBox.style.display = "block";
+});
+
+resetBtn.addEventListener("click", async () => {
+  resetError.textContent = "";
+  resetSuccess.textContent = "";
+  const recoveryKey = recoveryKeyInput.value;
+  const newPassword = newPasswordInput.value;
+  if (!recoveryKey || !newPassword) {
+    resetError.textContent = "Please fill in both fields.";
+    return;
+  }
+  if (newPassword.length < 6) {
+    resetError.textContent = "New password must be at least 6 characters.";
+    return;
+  }
+  resetBtn.disabled = true;
+  resetBtn.textContent = "Setting password…";
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/reset-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ recoveryKey, newPassword }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Reset failed");
+    resetSuccess.textContent = "Password set! You can log in with it now.";
+    recoveryKeyInput.value = "";
+    newPasswordInput.value = "";
+    setTimeout(() => {
+      resetFormBox.style.display = "none";
+      loginFormBox.style.display = "block";
+    }, 1500);
+  } catch (err) {
+    resetError.textContent = err.message === "Wrong recovery key"
+      ? "That recovery key doesn't match."
+      : "Couldn't reset password. Please try again.";
+  } finally {
+    resetBtn.disabled = false;
+    resetBtn.textContent = "Set new password";
+  }
 });
 
 logoutBtn.addEventListener("click", () => {
@@ -183,6 +252,32 @@ function startEdit(product) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+async function uploadToCloudinary(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  // Strip trailing dot if accidentally included in config
+  const preset = CLOUDINARY_UPLOAD_PRESET.replace(/\.+$/, "");
+  formData.append("upload_preset", preset);
+  let res = await fetch(
+    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+    { method: "POST", body: formData }
+  );
+  if (!res.ok) {
+    // Retry with raw config string if preset literally had a dot in Cloudinary
+    formData.set("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+    res = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+      { method: "POST", body: formData }
+    );
+  }
+  if (!res.ok) {
+    const errJson = await res.json().catch(() => ({}));
+    throw new Error(errJson.error?.message || "Cloudinary upload failed");
+  }
+  const data = await res.json();
+  return data.secure_url;
+}
+
 function resetForm() {
   formTitle.textContent = "Add a shoe";
   editIdInput.value = "";
@@ -203,25 +298,39 @@ saveBtn.addEventListener("click", async () => {
     alert("Please fill in name, category, price, and sizes.");
     return;
   }
-  const formData = new FormData();
-  formData.append("name", fName.value);
-  formData.append("category", fCategory.value);
-  formData.append("price", fPrice.value);
-  formData.append("sizes", fSizes.value);
-  formData.append("sku", fSku.value);
-  formData.append("existingImage", existingImageInput.value);
-  if (fImage.files[0]) formData.append("image", fImage.files[0]);
-
-  const id = editIdInput.value;
-  const url = id ? `${API_BASE}/api/admin/products/${id}` : `${API_BASE}/api/admin/products`;
-  const method = id ? "PUT" : "POST";
 
   saveBtn.disabled = true;
   saveBtn.textContent = "Saving…";
+
   try {
-    const res = await fetch(url, { method, headers: authHeaders(), body: formData });
+    let imageUrl = existingImageInput.value || "";
+    if (fImage.files[0]) {
+      saveBtn.textContent = "Uploading photo…";
+      imageUrl = await uploadToCloudinary(fImage.files[0]);
+    }
+
+    const payload = {
+      name: fName.value,
+      category: fCategory.value,
+      price: Number(fPrice.value) || 0,
+      sizes: fSizes.value,
+      sku: fSku.value,
+      image: imageUrl,
+    };
+
+    const id = editIdInput.value;
+    const url = id ? `${API_BASE}/api/admin/products/${id}` : `${API_BASE}/api/admin/products`;
+    const method = id ? "PUT" : "POST";
+
+    saveBtn.textContent = "Saving…";
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify(payload),
+    });
     if (res.status === 401) return handleAuthError();
     if (!res.ok) throw new Error("save failed");
+
     resetForm();
     loadProducts();
     loadDashboard();
@@ -247,6 +356,58 @@ async function deleteProduct(id, name) {
     alert("Couldn't delete. Please try again.");
   }
 }
+
+/* ---------- Change password (Settings tab) ---------- */
+
+const currentPasswordInput = document.getElementById("current-password-input");
+const newPasswordSettingsInput = document.getElementById("new-password-settings-input");
+const changePwBtn = document.getElementById("change-pw-btn");
+const changePwError = document.getElementById("change-pw-error");
+const changePwSuccess = document.getElementById("change-pw-success");
+
+changePwBtn.addEventListener("click", async () => {
+  changePwError.textContent = "";
+  changePwSuccess.textContent = "";
+  const currentPassword = currentPasswordInput.value;
+  const newPassword = newPasswordSettingsInput.value;
+  if (!currentPassword || !newPassword) {
+    changePwError.textContent = "Please fill in both fields.";
+    return;
+  }
+  if (newPassword.length < 6) {
+    changePwError.textContent = "New password must be at least 6 characters.";
+    return;
+  }
+  changePwBtn.disabled = true;
+  changePwBtn.textContent = "Updating…";
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/change-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    if (res.status === 401) {
+      const data = await res.json().catch(() => ({}));
+      // Distinguish "session expired" from "current password wrong":
+      // a wrong current password returns 401 with an error message but
+      // the token itself is still fine, so don't log the user out for that.
+      if (data.error === "Current password is wrong") {
+        changePwError.textContent = "Current password is wrong.";
+        return;
+      }
+      return handleAuthError();
+    }
+    if (!res.ok) throw new Error("failed");
+    changePwSuccess.textContent = "Password updated. You'll need it next time you log in.";
+    currentPasswordInput.value = "";
+    newPasswordSettingsInput.value = "";
+  } catch (err) {
+    changePwError.textContent = "Couldn't update password. Please try again.";
+  } finally {
+    changePwBtn.disabled = false;
+    changePwBtn.textContent = "Update password";
+  }
+});
 
 /* ---------- Service worker (PWA) ---------- */
 
