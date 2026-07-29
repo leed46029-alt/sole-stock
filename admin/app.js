@@ -303,7 +303,56 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+/* ---------- PWA Install Prompt ---------- */
+
+let deferredInstallPrompt = null;
+const installBanner = document.getElementById("install-banner");
+const installBtn    = document.getElementById("install-btn");
+const dismissBtn    = document.getElementById("install-dismiss");
+
+// Capture the browser's install prompt
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+
+  // Only show if the user hasn't dismissed before
+  if (!localStorage.getItem("pwa-install-dismissed")) {
+    // Small delay so the banner doesn't pop up instantly
+    setTimeout(() => {
+      installBanner.style.display = "flex";
+    }, 2500);
+  }
+});
+
+// User taps "Install"
+if (installBtn) {
+  installBtn.addEventListener("click", async () => {
+    if (!deferredInstallPrompt) return;
+    installBanner.style.display = "none";
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    if (outcome === "accepted") {
+      deferredInstallPrompt = null;
+    }
+  });
+}
+
+// User taps ✕ — hide and remember
+if (dismissBtn) {
+  dismissBtn.addEventListener("click", () => {
+    installBanner.style.display = "none";
+    localStorage.setItem("pwa-install-dismissed", "1");
+  });
+}
+
+// Hide banner once the app is installed
+window.addEventListener("appinstalled", () => {
+  installBanner.style.display = "none";
+  deferredInstallPrompt = null;
+});
+
 /* ---------- Init ---------- */
 
 loadDashboard();
 loadProducts();
+

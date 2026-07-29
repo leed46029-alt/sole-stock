@@ -47,7 +47,7 @@ function waLink(message) {
 
 function productWaLink(product) {
   const message =
-    `Hi Lee's Soles! I'd like to order:\n` +
+    `Hi Lee's Soles and Tasks! I'd like to order:\n` +
     `${product.name} (${product.sku || "N/A"})\n` +
     `Category: ${product.category}\n` +
     `Price: KES ${product.price.toLocaleString()}\n` +
@@ -56,7 +56,7 @@ function productWaLink(product) {
   return waLink(message);
 }
 
-const generalMessage = "Hi Lee's Soles! I'd like to ask about your shoes.";
+const generalMessage = "Hi Lee's Soles and Tasks! I'd like to ask about your shoes.";
 ["header-whatsapp", "footer-whatsapp", "float-whatsapp"].forEach((id) => {
   const el = document.getElementById(id);
   if (el) el.href = waLink(generalMessage);

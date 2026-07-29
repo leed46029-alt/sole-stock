@@ -1,15 +1,27 @@
 {
-  "name": "Lee's Soles Admin",
-  "short_name": "LS Admin",
-  "description": "Manage the Lee's Soles shoe catalog and view site stats.",
+  "name": "Lee's Soles and Tasks",
+  "short_name": "LS Tasks",
+  "description": "Manage the Lee's Soles and Tasks shoe catalog, view site stats, and upload products.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#F7F3EC",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#23201B",
   "theme_color": "#23201B",
   "orientation": "portrait",
+  "categories": ["shopping", "productivity"],
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }

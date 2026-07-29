@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You're Offline — Lee's Soles and Tasks</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Work Sans', system-ui, sans-serif;
+    background: #23201B;
+    color: #F7F3EC;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    text-align: center;
+  }
+  .icon { font-size: 4rem; }
+  h1 { font-size: 1.5rem; font-weight: 700; }
+  p { color: #a09580; font-size: 0.95rem; max-width: 320px; line-height: 1.6; }
+  button {
+    margin-top: 0.5rem;
+    background: #F7F3EC;
+    color: #23201B;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div class="icon">📶</div>
+  <h1>You're offline</h1>
+  <p>Lee's Soles and Tasks needs an internet connection to load. Please check your connection and try again.</p>
+  <button onclick="location.reload()">Try again</button>
+</body>
+</html>
