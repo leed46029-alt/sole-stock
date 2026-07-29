@@ -1,7 +1,7 @@
 {
-  "name": "Sole Stock Admin",
-  "short_name": "SS Admin",
-  "description": "Manage the Sole Stock shoe catalog and view site stats.",
+  "name": "Lee's Soles Admin",
+  "short_name": "LS Admin",
+  "description": "Manage the Lee's Soles shoe catalog and view site stats.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

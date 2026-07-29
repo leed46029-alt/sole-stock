@@ -1,5 +1,5 @@
 /*
-  SOLE STOCK API
+  LEE'S SOLES API
   --------------
   One Cloudflare Worker serving:
     - Public endpoints the site (viewers) uses:
