@@ -333,8 +333,14 @@ export default {
 
       // ---------- ADMIN: stats ----------
       if (path === "/api/admin/stats" && method === "GET") {
+        const todayVisits = await env.DB.prepare(
+          "SELECT COUNT(*) AS n FROM visits WHERE date(created_at, '+3 hours') = date('now', '+3 hours')"
+        ).first();
         const totalVisits = await env.DB.prepare(
           "SELECT COUNT(*) AS n FROM visits"
+        ).first();
+        const todayClicks = await env.DB.prepare(
+          "SELECT COUNT(*) AS n FROM clicks WHERE date(created_at, '+3 hours') = date('now', '+3 hours')"
         ).first();
         const totalClicks = await env.DB.prepare(
           "SELECT COUNT(*) AS n FROM clicks"
@@ -347,7 +353,7 @@ export default {
            ORDER BY clicks DESC`
         ).all();
         const byDay = await env.DB.prepare(
-          `SELECT date(created_at) AS day, COUNT(*) AS n
+          `SELECT date(created_at, '+3 hours') AS day, COUNT(*) AS n
            FROM visits
            GROUP BY day
            ORDER BY day DESC
@@ -355,7 +361,9 @@ export default {
         ).all();
         return json(
           {
+            todayVisits: todayVisits.n,
             totalVisits: totalVisits.n,
+            todayClicks: todayClicks.n,
             totalClicks: totalClicks.n,
             perProduct: perProduct.results,
             visitsByDay: byDay.results.reverse(),

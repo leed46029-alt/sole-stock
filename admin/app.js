@@ -28,24 +28,35 @@ async function loadDashboard() {
     const res = await fetch(`${API_BASE}/api/admin/stats`);
     const data = await res.json();
 
+    const visitsToday = data.todayVisits !== undefined ? data.todayVisits : (data.totalVisits || 0);
+    const clicksToday = data.todayClicks !== undefined ? data.todayClicks : (data.totalClicks || 0);
+
     const statGrid = document.getElementById("stat-grid");
-    statGrid.innerHTML = `
-      <div class="stat-card"><div class="n">${data.totalVisits}</div><div class="label">Total visits</div></div>
-      <div class="stat-card"><div class="n">${data.totalClicks}</div><div class="label">WhatsApp clicks</div></div>
-    `;
+    if (statGrid) {
+      statGrid.innerHTML = `
+        <div class="stat-card"><div class="n">${visitsToday}</div><div class="label">Today's visits</div></div>
+        <div class="stat-card"><div class="n">${clicksToday}</div><div class="label">Today's WhatsApp clicks</div></div>
+      `;
+    }
 
     const tbody = document.querySelector("#stats-table tbody");
-    if (!data.perProduct.length) {
-      tbody.innerHTML = `<tr><td colspan="2" class="empty">No products yet.</td></tr>`;
-    } else {
-      tbody.innerHTML = data.perProduct
-        .map((p) => `<tr><td>${p.name}</td><td>${p.clicks}</td></tr>`)
-        .join("");
+    if (tbody) {
+      if (!data.perProduct.length) {
+        tbody.innerHTML = `<tr><td colspan="2" class="empty">No products yet.</td></tr>`;
+      } else {
+        tbody.innerHTML = data.perProduct
+          .map((p) => `<tr><td>${p.name}</td><td>${p.clicks}</td></tr>`)
+          .join("");
+      }
     }
   } catch (err) {
-    document.getElementById("stat-grid").innerHTML = `<p class="empty">Couldn't load stats.</p>`;
+    const statGrid = document.getElementById("stat-grid");
+    if (statGrid) statGrid.innerHTML = `<p class="empty">Couldn't load stats.</p>`;
   }
 }
+
+// Auto-refresh stats every 30 seconds (resets to 0 at 12:00 AM midnight)
+setInterval(loadDashboard, 30000);
 
 /* ---------- Products ---------- */
 

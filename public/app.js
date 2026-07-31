@@ -45,14 +45,18 @@ function waLink(message) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
-function productWaLink(product) {
+function productWaLink(product, selectedImageUrl) {
+  const photoLine = selectedImageUrl
+    ? `\nPhoto: ${selectedImageUrl}\n`
+    : "";
   const message =
     `Hi Lee's Soles and Tasks! I'd like to order:\n` +
     `${product.name} (${product.sku || "N/A"})\n` +
     `Category: ${product.category}\n` +
     `Price: KES ${product.price.toLocaleString()}\n` +
-    `Available sizes: ${product.sizes}\n\n` +
-    `Please let me know if it's in stock.`;
+    `Available sizes: ${product.sizes}` +
+    photoLine +
+    `\nPlease let me know if it's in stock.`;
   return waLink(message);
 }
 
@@ -64,17 +68,23 @@ const generalMessage = "Hi Lee's Soles and Tasks! I'd like to ask about your sho
 
 /* ---------- Tracking ---------- */
 
-function trackVisit() {
-  const lastVisit = localStorage.getItem("sole_stock_last_visit");
-  const now = Date.now();
-  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000; // 24 hours in ms
+function getTodayStringEAT() {
+  // Returns YYYY-MM-DD in East Africa Time (UTC+3)
+  const now = new Date(Date.now() + 3 * 60 * 60 * 1000);
+  return now.toISOString().slice(0, 10);
+}
 
-  if (lastVisit && now - parseInt(lastVisit, 10) < TWENTY_FOUR_HOURS) {
-    // Same browser visited within 24 hours — don't count duplicate visit
+function trackVisit() {
+  const lastVisitDay = localStorage.getItem("sole_stock_last_visit_day");
+  const today = getTodayStringEAT();
+
+  if (lastVisitDay === today) {
+    // Already counted a visit today — don't double count
     return;
   }
 
-  localStorage.setItem("sole_stock_last_visit", now.toString());
+  // New day (or first ever visit) — record the date and fire the API call
+  localStorage.setItem("sole_stock_last_visit_day", today);
   fetch(`${API_BASE}/api/track/visit`, { method: "POST" }).catch(() => {});
 }
 
@@ -103,7 +113,8 @@ function openModal(product) {
   modalPrice.textContent = product.price.toLocaleString();
   modalSku.textContent = product.sku ? `SKU: ${product.sku}` : "";
 
-  modalOrderBtn.href = productWaLink(product);
+  // Set initial order button link with the first image
+  modalOrderBtn.href = productWaLink(product, images[0] || "");
 
   // Set click tracker on order button
   modalOrderBtn.onclick = () => trackClick(product.id);
@@ -121,6 +132,8 @@ function openModal(product) {
           modalImg.src = optimizeImageUrl(url, 800);
           galleryStrip.querySelectorAll(".gallery-thumb").forEach((t) => t.classList.remove("active"));
           thumb.classList.add("active");
+          // Update WA link to include the currently-selected photo
+          modalOrderBtn.href = productWaLink(product, url);
         });
         galleryStrip.appendChild(thumb);
       });
