@@ -270,9 +270,13 @@ saveBtn.addEventListener("click", async () => {
     });
     if (!res.ok) throw new Error("save failed");
 
+    const savedName = payload.name;
+    const wasEdit = !!id;
+
     resetForm();
     loadProducts();
     loadDashboard();
+    showPostSavePrompt(savedName, wasEdit);
   } catch (err) {
     alert("Couldn't save: " + (err.message || "Please check your connection and try again."));
   } finally {
@@ -293,6 +297,35 @@ async function deleteProduct(id, name) {
   } catch (err) {
     alert("Couldn't delete. Please try again.");
   }
+}
+
+/* ---------- Post-Save Prompt Modal ---------- */
+const postSaveBackdrop  = document.getElementById("post-save-backdrop");
+const postSaveTitle     = document.getElementById("post-save-title");
+const postSaveSubtitle  = document.getElementById("post-save-subtitle");
+const btnViewStorefront = document.getElementById("btn-view-storefront");
+const btnStayAdmin      = document.getElementById("btn-stay-admin");
+
+function showPostSavePrompt(shoeName, isEdit) {
+  if (!postSaveBackdrop) return;
+  const actionText = isEdit ? "updated" : "posted";
+  if (postSaveTitle)    postSaveTitle.textContent = `Shoe ${isEdit ? "Updated" : "Posted"} Successfully!`;
+  if (postSaveSubtitle) postSaveSubtitle.textContent = `"${shoeName}" is now ${actionText} on your store. Would you like to view it on the live website now?`;
+  postSaveBackdrop.style.display = "flex";
+}
+
+function hidePostSavePrompt() {
+  if (postSaveBackdrop) postSaveBackdrop.style.display = "none";
+}
+
+if (btnStayAdmin) {
+  btnStayAdmin.addEventListener("click", hidePostSavePrompt);
+}
+
+if (btnViewStorefront) {
+  btnViewStorefront.addEventListener("click", () => {
+    hidePostSavePrompt();
+  });
 }
 
 /* ---------- Service worker (PWA) ---------- */

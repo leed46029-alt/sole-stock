@@ -109,6 +109,25 @@ html, body {
   cursor: pointer;
   font-size: 0.8rem;
 }
+.topbar-live-btn {
+  background: rgba(247, 243, 236, 0.12);
+  color: var(--paper);
+  border: 1px solid rgba(247, 243, 236, 0.35);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+.topbar-live-btn:hover {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--paper);
+}
 
 .tabs {
   display: flex;
@@ -387,4 +406,104 @@ input[type="text"], input[type="number"], input[type="file"], select {
   transition: color 0.15s;
 }
 .install-dismiss:hover { color: var(--paper); }
+
+/* ── Post-Save Prompt Modal ───────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  background: rgba(35, 32, 27, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: modalFadeIn 0.2s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.post-save-card {
+  background: #ffffff;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  animation: modalPopUp 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPopUp {
+  from { transform: scale(0.88); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+.modal-success-badge {
+  font-size: 2.8rem;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+.modal-subtitle {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin: 0 0 24px;
+  line-height: 1.4;
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-modal-primary {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  display: block;
+  text-align: center;
+  transition: opacity 0.15s;
+}
+
+.btn-modal-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-modal-secondary {
+  background: #f0ebe1;
+  color: var(--ink);
+  border: 1px solid rgba(35, 32, 27, 0.15);
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s;
+}
+
+.btn-modal-secondary:hover {
+  background: #e4ddcf;
+}
+
 

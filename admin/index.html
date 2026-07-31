@@ -24,6 +24,7 @@
 <div id="app-screen">
   <div class="topbar">
     <span class="brand">Lee's Soles and Tasks</span>
+    <a href="https://leed46029-alt.github.io/sole-stock/" target="_blank" rel="noopener" class="topbar-live-btn">🌐 View Live Website ↗</a>
   </div>
 
   <div class="tabs">
@@ -86,6 +87,17 @@
   <div class="install-actions">
     <button class="install-btn" id="install-btn">Install</button>
     <button class="install-dismiss" id="install-dismiss" aria-label="Dismiss">✕</button>
+  </div>
+<!-- Post-Upload Prompt Modal -->
+<div class="modal-backdrop" id="post-save-backdrop" style="display:none;">
+  <div class="post-save-card" role="dialog" aria-modal="true">
+    <div class="modal-success-badge">✅</div>
+    <h3 class="modal-title" id="post-save-title">Shoe Saved Successfully!</h3>
+    <p class="modal-subtitle" id="post-save-subtitle">Your shoe is now updated on the store.</p>
+    <div class="modal-actions">
+      <a href="https://leed46029-alt.github.io/sole-stock/" target="_blank" rel="noopener" class="btn btn-modal-primary" id="btn-view-storefront">🌐 View on Storefront</a>
+      <button class="btn btn-modal-secondary" id="btn-stay-admin">Stay in Admin</button>
+    </div>
   </div>
 </div>
 
