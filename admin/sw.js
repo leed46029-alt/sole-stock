@@ -7,7 +7,7 @@
     • Offline fallback: If a nav request fails and nothing is in cache, show a friendly offline page.
 */
 
-const CACHE_VERSION = "lees-soles-tasks-v2";
+const CACHE_VERSION = "lees-soles-tasks-v3";
 const SHELL_FILES = [
   "./index.html",
   "./styles.css",
@@ -23,17 +23,22 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_VERSION).then((cache) => cache.addAll(SHELL_FILES))
   );
-  self.skipWaiting();
+  self.skipWaiting(); // activate immediately, don't wait for old SW to die
 });
 
-// ── Activate: purge old caches ─────────────────────────────────────────────
+// ── Activate: purge old caches + reload all open tabs ─────────────────────
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
         keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k))
       )
-    )
+    ).then(() => {
+      // Tell every open tab to reload so they get fresh files immediately
+      return self.clients.matchAll({ type: "window" }).then((clients) => {
+        clients.forEach((client) => client.navigate(client.url));
+      });
+    })
   );
   self.clients.claim();
 });
