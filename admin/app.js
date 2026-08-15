@@ -8,7 +8,7 @@ const API_BASE = "https://sole-stock-api.sole-stock.workers.dev";
 
 // Cloudinary (free image hosting, no card needed).
 const CLOUDINARY_CLOUD_NAME = "pbbkhshn";
-const CLOUDINARY_UPLOAD_PRESET = "sole-stock-unsigned.";
+const CLOUDINARY_UPLOAD_PRESET = "sole-stock-unsigned";
 
 /* ---------- Tabs ---------- */
 
@@ -195,22 +195,17 @@ function startEdit(product) {
 async function uploadToCloudinary(file) {
   const formData = new FormData();
   formData.append("file", file);
-  const preset = CLOUDINARY_UPLOAD_PRESET.replace(/\.+$/, "");
+  // Always strip any accidental trailing punctuation from the preset name
+  const preset = CLOUDINARY_UPLOAD_PRESET.replace(/[.\s]+$/, "");
   formData.append("upload_preset", preset);
-  let res = await fetch(
+  const res = await fetch(
     `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
     { method: "POST", body: formData }
   );
   if (!res.ok) {
-    formData.set("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-    res = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-      { method: "POST", body: formData }
-    );
-  }
-  if (!res.ok) {
     const errJson = await res.json().catch(() => ({}));
-    throw new Error(errJson.error?.message || "Cloudinary upload failed");
+    const msg = errJson.error?.message || "Cloudinary upload failed";
+    throw new Error(msg);
   }
   const data = await res.json();
   return data.secure_url;
