@@ -110,7 +110,10 @@ function renderImagePreviews() {
     if (deleteBtn) {
       deleteBtn.addEventListener("click", (e) => {
         e.preventDefault();
-        previewImages.splice(index, 1);
+        const removed = previewImages.splice(index, 1)[0];
+        if (removed && removed.type === "file" && removed.url) {
+          URL.revokeObjectURL(removed.url);
+        }
         renderImagePreviews();
       });
     }
@@ -220,6 +223,11 @@ function resetForm() {
   fPrice.value = "";
   fSizes.value = "";
   fImage.value = "";
+  previewImages.forEach((item) => {
+    if (item.type === "file" && item.url) {
+      URL.revokeObjectURL(item.url);
+    }
+  });
   previewImages = [];
   renderImagePreviews();
   cancelEditBtn.style.display = "none";
