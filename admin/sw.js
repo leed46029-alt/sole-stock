@@ -7,7 +7,7 @@
     • Offline fallback: If a nav request fails and nothing is in cache, show a friendly offline page.
 */
 
-const CACHE_VERSION = "lees-soles-tasks-v3";
+const CACHE_VERSION = "lees-soles-tasks-v4";
 const SHELL_FILES = [
   "./index.html",
   "./styles.css",
